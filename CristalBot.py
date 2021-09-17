@@ -5,11 +5,13 @@ from discord.ext import commands
 import random
 import pandas
 import os
+from dotenv import load_dotenv
 
 """DISCORD PARAMETERS"""
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='?', intents=intents)
+load_dotenv(dotenv_path="config")
 
 """DATA PARAMETERS"""
 DATA_FOLDER="DATA"
@@ -97,4 +99,4 @@ async def delete(ctx, number: int):
     for each_message in messages:
         await each_message.delete()
 
-bot.run("ODg3ODI0NDY3NDI0ODQ5OTYw.YUJw-A.VtgyFXNwlJkHBVISsgD7kFDWH34")
+bot.run(os.getenv("TOKEN"))
