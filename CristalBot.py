@@ -21,46 +21,82 @@ DATA_FOLDER="DATA"
 """FUNCTIONS"""
 def getCard(df,file):
     if file.startswith("WORSHIPPERS"):
-        #return getValue(df,"FACTION")
-
-        embed=discord.Embed(
-        title=getValue(df,"NOM")+" (UNIQUE)" if getValue(df,"UNICITE")=="U" else getValue(df,"NOM"),
-            description="",
-            color=discord.Color.blue())
-        #embed.add_field(name="*Italics*", value="Surround your text in asterisks (\*)", inline=False)
-        embed.add_field(name="***"+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Adoration: "+getValue(df,"ADORATION")+". Attack Power: "+getValue(df,"ATTAQUE")+". Endurance: "+getValue(df,"DEFENSE"), inline=False)
-        #embed.add_field(name='\u200b', value='\u200b', inline=False)
-        embed.add_field(name="**"+getValue(df,"WSH-TRAITS")+"**", value=getValue(df,"TEXTE"), inline=False)
-        #embed.add_field(name="__Underline__", value="Surround your text in double underscores (\_\_)", inline=False)
-        #embed.add_field(name="~~Strikethrough~~", value="Surround your text in double tildes (\~\~)", inline=False)
-        #embed.add_field(name="`Code Chunks`", value="Surround your text in backticks (\`)", inline=False)
-        #embed.add_field(name="Blockquotes", value="> Start your text with a greater than symbol (\>)", inline=False)
-        #embed.add_field(name="Secrets", value="||Surround your text with double pipes (\|\|)||", inline=False)
-        #'\u200b'
+        embed=discord.Embed(title="__"+getValue(df,"NOM")+" (UNIQUE)__" if getValue(df,"UNICITE")=="U" else "__"+getValue(df,"NOM")+"__", description = "", color = 0x1abc9c)
+        embed.add_field(name="***"+getValue(df,"FACTION")+" Worshipper • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Adoration: "+getValue(df,"ADORATION")+". Attack Power: "+getValue(df,"ATTAQUE")+". Endurance: "+getValue(df,"DEFENSE"), inline=False)
+        embed.add_field(name="**"+getValue(df,"WSH-TRAITS")+"**", value=getValue(df,"WSH-TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
+        return embed
+    if file.startswith("CRUSADES"):
+        embed=discord.Embed(title="__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
+        embed.add_field(name="***"+getValue(df,"FACTION")+" Event • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Elemental Value: "+getValue(df,"RAPIDITE"), inline=False)
+        embed.add_field(name="**"+getValue(df,"CRU-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
+        embed.set_footer(text="**flavor text**")
+        #'\u200'
+        return embed
+    if file.startswith("MUTATIONS"):
+        embed=discord.Embed(title="__"+getValue(df,"NOM")+" (UNIQUE)__" if getValue(df,"UNICITE")=="U" else "__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
+        embed.add_field(name="***"+getValue(df,"FACTION")+" Mutation • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Elemental Value: "+getValue(df,"RAPIDITE"), inline=False)
+        embed.add_field(name="**"+getValue(df,"CRU-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
+        embed.set_footer(text="**flavor text**")
+        #'\u200'
+        return embed
+    if file.startswith("KKOLOSSAL"):
+        embed=discord.Embed(title="__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
+        embed.add_field(name="***KKolossal Action***", value="Adoration required: "+getValue(df,"COUT")+". Swiftness: "+getValue(df,"RAPIDITE"), inline=False)
+        embed.add_field(name="**"+getValue(df,"KK-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
+        embed.set_footer(text="**flavor text**")
+        #'\u200b'
+        return embed
+    if file.startswith("TRIBES"):
+        embed=discord.Embed(title="__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
+        embed.add_field(name="***"+getValue(df,"FACTION")+" Tribe***", value='\u200b', inline=False)
+        embed.add_field(name="**"+getValue(df,"CRU-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
+        embed.set_footer(text="**flavor text**")
+        #'\u200b'
         return embed
 
 def getValue(df,type):
     if type=="FACTION":
-        list_factions=["NEUTRE","GAALDEN","MELI-AKUMI","AÏMA","DJAÏN"]
+        list_factions=["Neutral","Gaalden","Meli-Akumi","Aïma","Djaïn"]
         return list_factions[int(df[type].values[0])-1]
     elif type=="WSH-TRAITS":
         texte = str(df["TEXTE"].values[0]).split("\\13\\ \\13\\")[0].replace("-","•")
         return texte
-    elif type=="TEXTE":
-        texte = str(df[type].values[0])
-        print(texte)
+    elif type=="WSH-TEXTE":
+        texte = str(df["TEXTE"].values[0])
         texte = texte.split("\\13\\ \\13\\")
-        print(texte)
         texte = texte[1]
-        texte = texte.replace("\\13\\\\13\\","\n")
-        print(texte)
+        texte = texte.replace("\\13\\","\n> ")
         texte = texte.replace("{","**{").replace("}","}**")
-        print(texte)
+        texte = "> "+texte
+        if texte[-1]==">":
+            texte=texte[:-1]
+        if texte[-2]==">":
+            texte=texte[:-2]
         return texte
+    elif type=="TEXTE":
+        texte = str(df["TEXTE"].values[0])
+        texte = texte.replace("\\13\\","\n> ")
+        texte = texte.replace("{","**{").replace("}","}**")
+        if texte.startswith("> "):
+            texte=texte[2:]
+        return texte
+    elif type=="CRU-ICONES":
+        dict_icones={'A':'Ethereal','S':'Corrupted','F':'Incandescent','T':'Telluric','E':'Aqueous'}
+        icones = df["ICONES"].values[0]
+        elements = ""
+        for l in icones:
+            elements = dict_icones[l] if elements=="" else elements + " • " + dict_icones[l]
+        return elements
+    elif type=="KK-ICONES":
+        dict_icones={'K':'Kham','D':'Diil','I':'Inks','M':'Maka','Z':'Zhunnu','R':'Rogvok','H':'Gomm'}
+        icones = df["ICONES"].values[0]
+        runes = ""
+        for l in icones:
+            runes = dict_icones[l] if runes=="" else runes + " • " + dict_icones[l]
+        return runes
     else:
-        return str(df[type].values[0])
-
+        return str(df[type].values[0]).replace(".0","")
 
 """BOT COMMANDS"""
 @bot.event
@@ -72,16 +108,20 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    if message.content.find("[[")>0 and message.content.find("]]")>0:
-        #print(message.content.index("[["))
-        name = message.content[int(message.content.index("[["))+2:int(message.content.index("]]"))]
+    index=0
+    while message.content.find("[[",index)>-1 and message.content.find("]]",index)>-1:
+        name = message.content[int(message.content.index("[[",index))+2:int(message.content.index("]]",index))]
+        index = int(message.content.index("]]",index))+2
         ctx = await bot.get_context(message)
         data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
         for path, subdirs, files in os.walk(data_path):
             for f in files:
                 result = pandas.read_csv(os.path.join(path,f), sep=';')
-                df = result[result.NOM==name]
+                #df = result.loc[:,result.NOM.dropna().str.contains(name, case=False)]
+                df = result[result.NOM.str.contains(name, case=False, na=False)]
+                #df = result[result.NOM==name]
                 if not df.empty:
+                    #print(df)
                     await ctx.send(embed=getCard(df,f))
     await bot.process_commands(message)
 
@@ -91,7 +131,9 @@ async def carte(ctx, *, name: str):
     for path, subdirs, files in os.walk(data_path):
         for f in files:
             result = pandas.read_csv(os.path.join(path,f), sep=';')
-            df = result[result.NOM==name]
+            #df = result.loc[:,result.NOM.dropna().str.contains(name, case=False)]
+            df = result[result.NOM.str.contains(name, case=False, na=False)]
+            #df = result[result.NOM==name]
             if not df.empty:
                 await ctx.send(embed=getCard(df,f))
 
