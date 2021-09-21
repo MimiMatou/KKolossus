@@ -98,6 +98,53 @@ def getValue(df,type):
     else:
         return str(df[type].values[0]).replace(".0","")
 
+def getEmbedCard(name):
+    data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
+    for path, subdirs, files in os.walk(data_path):
+        for f in files:
+            result = pandas.read_csv(os.path.join(path,f), sep=';')
+            df = result[result.NOM.str.contains(name, case=False, na=False)]
+            if not df.empty:
+                return getCard(df,f)
+    return "KO"
+
+def cardExists(name):
+    data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
+    cardExists = False
+    for path, subdirs, files in os.walk(data_path):
+        for f in files:
+            result = pandas.read_csv(os.path.join(path,f), sep=';')
+            df = result[result.NOM.str.contains(name, case=False, na=False)]
+            if not df.empty:
+                cardExists = True
+    return cardExists
+
+def cardRealName(name):
+    data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
+    for path, subdirs, files in os.walk(data_path):
+        for f in files:
+            result = pandas.read_csv(os.path.join(path,f), sep=';')
+            df = result[result.NOM.str.contains(name, case=False, na=False)]
+            if not df.empty:
+                return getValue(df,"NOM")
+    return "KO"
+
+def cardChannel(name):
+    data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
+    for path, subdirs, files in os.walk(data_path):
+        for f in files:
+            result = pandas.read_csv(os.path.join(path,f), sep=';')
+            df = result[result.NOM.str.contains(name, case=False, na=False)]
+            if not df.empty:
+                if f.startswith("KKOLOSSAL"):
+                    return "kkolossal-"+getValue(df,"NOM")
+                else:
+                    return getValue(df,"FACTION")+"-"+getValue(df,"NOM")
+    return "KO"
+
+def channelConversion(name):
+    return name.lower().replace(",","").replace(" ","-").replace("\'","")
+
 """BOT COMMANDS"""
 @bot.event
 async def on_ready():
@@ -117,11 +164,8 @@ async def on_message(message):
         for path, subdirs, files in os.walk(data_path):
             for f in files:
                 result = pandas.read_csv(os.path.join(path,f), sep=';')
-                #df = result.loc[:,result.NOM.dropna().str.contains(name, case=False)]
                 df = result[result.NOM.str.contains(name, case=False, na=False)]
-                #df = result[result.NOM==name]
                 if not df.empty:
-                    #print(df)
                     await ctx.send(embed=getCard(df,f))
     await bot.process_commands(message)
 
@@ -131,11 +175,33 @@ async def carte(ctx, *, name: str):
     for path, subdirs, files in os.walk(data_path):
         for f in files:
             result = pandas.read_csv(os.path.join(path,f), sep=';')
-            #df = result.loc[:,result.NOM.dropna().str.contains(name, case=False)]
             df = result[result.NOM.str.contains(name, case=False, na=False)]
-            #df = result[result.NOM==name]
             if not df.empty:
                 await ctx.send(embed=getCard(df,f))
+
+@bot.command()
+async def playtest(ctx, *, name: str):
+    if cardChannel(name)!="KO":
+        nameChannel = cardChannel(name)
+        channelExist = ""
+        text_channel_list = []
+        for server in bot.guilds:
+            for channel in server.channels:
+                if str(channel.type) == 'text' and str(channel.name) == channelConversion(nameChannel):
+                    channelExist = channel
+        if channelExist!="":
+            msg = 'Le salon de playtest de cette carte existe déjà :\n{0.mention}'.format(channelExist)
+            await ctx.send(msg)
+        else:
+            category = bot.get_channel(889176112930897941)
+            channelCreated = await ctx.guild.create_text_channel(nameChannel, category=category)
+            msg = 'Le salon de playtest de cette carte a été créé :\n{0.mention}'.format(channelCreated)
+            await ctx.send(msg)
+            embed = getEmbedCard(name)
+            print(embed)
+            if embed!="KO":
+                await channelCreated.send(embed=embed)
+            #await channelCreated.send(embed=getCard(df,f))
 
 @bot.command()
 async def embed(ctx):
