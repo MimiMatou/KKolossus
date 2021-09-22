@@ -15,47 +15,63 @@ load_dotenv(dotenv_path="config")
 
 """DATA PARAMETERS"""
 DATA_FOLDER="DATA"
-
+ILLUS_FOLDER="ILLUSTRATIONS"
 
 
 """FUNCTIONS"""
 def getCard(df,file):
+    #Illustration
+    image_file=""
+    illu = getCardIllu(getValue(df,"NOM"))
+    if illu!="KO":
+        image_file = discord.File(illu, filename="image.png")
     if file.startswith("WORSHIPPERS"):
         embed=discord.Embed(title="__"+getValue(df,"NOM")+" (UNIQUE)__" if getValue(df,"UNICITE")=="U" else "__"+getValue(df,"NOM")+"__", description = "", color = 0x1abc9c)
+        if illu!="KO":
+            embed.set_image(url="attachment://image.png")
         embed.add_field(name="***"+getValue(df,"FACTION")+" Worshipper • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Adoration: "+getValue(df,"ADORATION")+". Attack Power: "+getValue(df,"ATTAQUE")+". Endurance: "+getValue(df,"DEFENSE"), inline=False)
         embed.add_field(name="**"+getValue(df,"WSH-TRAITS")+"**", value=getValue(df,"WSH-TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
-        return embed
+        return image_file, embed
     if file.startswith("CRUSADES"):
         embed=discord.Embed(title="__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
-        embed.add_field(name="***"+getValue(df,"FACTION")+" Event • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Elemental Value: "+getValue(df,"RAPIDITE"), inline=False)
+        if illu!="KO":
+            embed.set_image(url="attachment://image.png")
+        embed.add_field(name="***"+getValue(df,"FACTION")+" Crusade • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Elemental Value: "+getValue(df,"RAPIDITE"), inline=False)
         embed.add_field(name="**"+getValue(df,"CRU-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
         #'\u200'
-        return embed
+        return image_file, embed
     if file.startswith("MUTATIONS"):
         embed=discord.Embed(title="__"+getValue(df,"NOM")+" (UNIQUE)__" if getValue(df,"UNICITE")=="U" else "__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
+        if illu!="KO":
+            embed.set_image(url="attachment://image.png")
         embed.add_field(name="***"+getValue(df,"FACTION")+" Mutation • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Elemental Value: "+getValue(df,"RAPIDITE"), inline=False)
         embed.add_field(name="**"+getValue(df,"CRU-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
         #'\u200'
-        return embed
+        return image_file, embed
     if file.startswith("KKOLOSSAL"):
         embed=discord.Embed(title="__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
-        embed.add_field(name="***KKolossal Action***", value="Adoration required: "+getValue(df,"COUT")+". Swiftness: "+getValue(df,"RAPIDITE"), inline=False)
+        if illu!="KO":
+            embed.set_image(url="attachment://image.png")
+        embed.add_field(name="***KKolossal Clash***", value="Adoration required: "+getValue(df,"COUT")+". Swiftness: "+getValue(df,"RAPIDITE"), inline=False)
         embed.add_field(name="**"+getValue(df,"KK-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
         #'\u200b'
-        return embed
+        return image_file, embed
     if file.startswith("TRIBES"):
         embed=discord.Embed(title="__"+getValue(df,"NOM")+"__",description="",color=discord.Color.blue())
+        if illu!="KO":
+            embed.set_image(url="attachment://image.png")
         embed.add_field(name="***"+getValue(df,"FACTION")+" Tribe***", value='\u200b', inline=False)
         embed.add_field(name="**"+getValue(df,"CRU-ICONES")+"**", value=getValue(df,"TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
         #'\u200b'
-        return embed
+        return image_file, embed
 
 def getValue(df,type):
+
     if type=="FACTION":
         list_factions=["Neutral","Gaalden","Meli-Akumi","Aïma","Djaïn"]
         return list_factions[int(df[type].values[0])-1]
@@ -139,11 +155,35 @@ def cardChannel(name):
                 if f.startswith("KKOLOSSAL"):
                     return "kkolossal-"+getValue(df,"NOM")
                 else:
-                    return getValue(df,"FACTION")+"-"+getValue(df,"NOM")
+                    return getValue(df,"FACTION").replace("-Akumi","")+"-"+getValue(df,"NOM")
     return "KO"
 
 def channelConversion(name):
-    return name.lower().replace(",","").replace(" ","-").replace("\'","")
+    return name.lower().replace(",","").replace(" ","-").replace("\'","").replace("-akumi","")
+
+def getCardIllu(name):
+    data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER,ILLUS_FOLDER)
+    for path, subdirs, files in os.walk(data_path):
+        for f in files:
+            if name in f:
+                return os.path.join(data_path,path,f)
+    return "KO"
+
+def calculPlaytestPosition(name):
+    pt_channels = {}
+    channelPosition=0
+    channelName=channelConversion(name)
+    for server in bot.guilds:
+        for channel in server.channels:
+            if channel.category!=None:
+                if str(channel.type) == 'text' and channel.category.name=="PLAYTESTS":
+                    pt_channels[channel.position]=channel.name
+    for k, v in sorted(pt_channels.items()):
+        if channelName>v:
+            channelPosition=k+1
+    return channelPosition
+
+
 
 """BOT COMMANDS"""
 @bot.event
@@ -166,7 +206,11 @@ async def on_message(message):
                 result = pandas.read_csv(os.path.join(path,f), sep=';')
                 df = result[result.NOM.str.contains(name, case=False, na=False)]
                 if not df.empty:
-                    await ctx.send(embed=getCard(df,f))
+                    image, embed=getCard(df,f)
+                    if image=="":
+                        await ctx.send(embed=embed)
+                    else:
+                        await ctx.send(file=image,embed=embed)
     await bot.process_commands(message)
 
 @bot.command()
@@ -194,14 +238,17 @@ async def playtest(ctx, *, name: str):
             await ctx.send(msg)
         else:
             category = bot.get_channel(889176112930897941)
-            channelCreated = await ctx.guild.create_text_channel(nameChannel, category=category)
+            channelPosition=calculPlaytestPosition(nameChannel)
+            channelCreated = await ctx.guild.create_text_channel(nameChannel, category=category, position=channelPosition)
             msg = 'Le salon de playtest de cette carte a été créé :\n{0.mention}'.format(channelCreated)
             await ctx.send(msg)
-            embed = getEmbedCard(name)
-            print(embed)
+            image, embed = getEmbedCard(name)
             if embed!="KO":
-                await channelCreated.send(embed=embed)
-            #await channelCreated.send(embed=getCard(df,f))
+                if image=="":
+                    await channelCreated.send(embed=embed)
+                else:
+                    await channelCreated.send(file=image,embed=embed)
+        getCardIllu(cardRealName(name))
 
 @bot.command()
 async def embed(ctx):
