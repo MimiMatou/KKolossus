@@ -227,12 +227,14 @@ async def carte(ctx, *, name: str):
     for path, subdirs, files in os.walk(data_path):
         for f in files:
             result = pandas.read_csv(os.path.join(path,f), sep=';')
-            print("file : "+f)
-            print('name : '+name)
             df = result[result.NOM.str.contains(name, case=False, na=False)]
             print(df)
             if not df.empty:
-                await ctx.send(embed=getCard(df,f))
+                image, embed=getCard(df,f)
+                if image=="":
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send(file=image,embed=embed)
 
 @bot.command()
 async def playtest(ctx, *, name: str):
