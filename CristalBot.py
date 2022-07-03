@@ -6,12 +6,20 @@ import random
 import pandas
 import os
 from dotenv import load_dotenv
+import pathlib
+
+"""DOTENV CONFIG"""
+# Get the path to the directory this file is in
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+# Connect the path with your '.env' file name
+load_dotenv(os.path.join(BASEDIR, 'config'))
+
 
 """DISCORD PARAMETERS"""
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='?', intents=intents)
-load_dotenv(dotenv_path="config")
+
 
 """DATA PARAMETERS"""
 DATA_FOLDER="DATA"
@@ -29,7 +37,7 @@ def getCard(df,file):
         embed=discord.Embed(title="__"+getValue(df,"NOM")+" (UNIQUE)__" if getValue(df,"UNICITE")=="U" else "__"+getValue(df,"NOM")+"__", description = "", color = 0x1abc9c)
         if illu!="KO":
             embed.set_image(url="attachment://image.png")
-        embed.add_field(name="***"+getValue(df,"FACTION")+" Worshipper • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Adoration: "+getValue(df,"ADORATION")+". Attack Power: "+getValue(df,"ATTAQUE")+". Endurance: "+getValue(df,"DEFENSE"), inline=False)
+        embed.add_field(name="***"+getValue(df,"FACTION")+" Worshiper • "+getValue(df,"TYPES")+"***", value="Cost: "+getValue(df,"COUT")+". Adoration: "+getValue(df,"ADORATION")+". Attack Power: "+getValue(df,"ATTAQUE")+". Endurance: "+getValue(df,"DEFENSE"), inline=False)
         embed.add_field(name="**"+getValue(df,"WSH-TRAITS")+"**", value=getValue(df,"WSH-TEXTE"), inline=False)
         embed.set_footer(text="**flavor text**")
         return image_file, embed
