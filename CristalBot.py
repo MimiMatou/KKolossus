@@ -227,6 +227,7 @@ async def carte(ctx, *, name: str):
     for path, subdirs, files in os.walk(data_path):
         for f in files:
             result = pandas.read_csv(os.path.join(path,f), sep=';')
+            print('name :'+name)
             df = result[result.NOM.str.contains(name, case=False, na=False)]
             if not df.empty:
                 await ctx.send(embed=getCard(df,f))
