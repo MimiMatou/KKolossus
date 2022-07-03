@@ -209,13 +209,18 @@ async def on_message(message):
         index = int(message.content.index("]]",index))+2
         ctx = await bot.get_context(message)
         data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
+        #vérifie s'il y a un "!" devant le nom de la carte pour savoir s'il faut afficher une image ou pas
+        no_image = True
+        if name[0]=="!":
+            name=name[1:]
+            no_image = False
         for path, subdirs, files in os.walk(data_path):
             for f in files:
                 result = pandas.read_csv(os.path.join(path,f), sep=';')
                 df = result[result.NOM.str.contains(name, case=False, na=False)]
                 if not df.empty:
                     image, embed=getCard(df,f)
-                    if image=="":
+                    if image=="" or no_image:
                         await ctx.send(embed=embed)
                     else:
                         await ctx.send(file=image,embed=embed)
@@ -225,6 +230,7 @@ async def on_message(message):
 async def carte(ctx, *, name: str):
     data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
     no_image = True
+    #vérifie s'il y a un "!" devant le nom de la carte pour savoir s'il faut afficher une image ou pas
     if name[0]=="!":
         name=name[1:]
         no_image = False
