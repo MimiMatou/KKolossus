@@ -1,0 +1,15 @@
+[Unit]
+Description=Discord Bot
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/matou/DEV/KKolossus/CristalBot.py
+User=matou
+
+[Install]
+WantedBy=multi-user.target
