@@ -225,7 +225,7 @@ async def on_message(message):
 async def carte(ctx, *, name: str):
     data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
     no_image = True
-    if name[0]="!":
+    if name[0]=="!":
         name=name[1:]
         no_image = False
     for path, subdirs, files in os.walk(data_path):
