@@ -224,14 +224,17 @@ async def on_message(message):
 @bot.command()
 async def carte(ctx, *, name: str):
     data_path = os.path.join(os.path.abspath(os.path.dirname( __file__)),DATA_FOLDER)
+    no_image = True
+    if name[0]="!":
+        name=name[1:]
+        no_image = False
     for path, subdirs, files in os.walk(data_path):
         for f in files:
             result = pandas.read_csv(os.path.join(path,f), sep=';')
             df = result[result.NOM.str.contains(name, case=False, na=False)]
-            print(df)
             if not df.empty:
                 image, embed=getCard(df,f)
-                if image=="":
+                if image=="" or no_image:
                     await ctx.send(embed=embed)
                 else:
                     await ctx.send(file=image,embed=embed)
